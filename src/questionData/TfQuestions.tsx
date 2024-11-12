@@ -6,7 +6,7 @@ const tfQuestions = [
         options: [{optionid:1,optiontext:"O"},{optionid:2,optiontext:"X"}],
         answer:2,
         exp:"詳請解釋",
-        student_answer:undefined,
+        student_answer:undefined as number | undefined,
     },
     {
         question:"這是是非題的題目喔喔喔",
@@ -15,7 +15,7 @@ const tfQuestions = [
         options: [{optionid:1,optiontext:"O"},{optionid:2,optiontext:"X"}],
         answer:1,
         exp:"詳請解釋如此如此",
-        student_answer:undefined,
+        student_answer:undefined as number | undefined,
     },
     {
         question:"這是是非題的題目喔喔喔",
@@ -24,7 +24,7 @@ const tfQuestions = [
         options: [{optionid:1,optiontext:"O"},{optionid:2,optiontext:"X"}],
         answer:1,
         exp:"詳請解釋如此如此",
-        student_answer:undefined,
+        student_answer:undefined as number | undefined,
     },
     {
         question:"這是是非題的題目喔喔喔",
@@ -33,7 +33,7 @@ const tfQuestions = [
         options: [{optionid:1,optiontext:"O"},{optionid:2,optiontext:"X"}],
         answer:1,
         exp:"詳請解釋如此如此",
-        student_answer:undefined,
+        student_answer:undefined as number | undefined,
     },
     {
         question:"這是是非題的題目喔喔喔",
@@ -42,7 +42,7 @@ const tfQuestions = [
         options: [{optionid:1,optiontext:"O"},{optionid:2,optiontext:"X"}],
         answer:1,
         exp:"詳請解釋如此如此",
-        student_answer:undefined,
+        student_answer:undefined as number | undefined,
     },
     {
         question:"這是是非題的題目喔喔喔",
@@ -51,7 +51,7 @@ const tfQuestions = [
         options: [{optionid:1,optiontext:"O"},{optionid:2,optiontext:"X"}],
         answer:1,
         exp:"詳請解釋如此如此",
-        student_answer:undefined,
+        student_answer:undefined as number | undefined,
     }
 ]
 

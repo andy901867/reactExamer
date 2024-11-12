@@ -3,7 +3,11 @@ export interface RemarkQuestionEvent{
     questionId: number
 }
 
-export interface IsAnsweredEvent{
+export interface AnsweredEvent{
     isAnswered: boolean,
     questionId: number
+}
+
+export interface TfAnsweredEvent extends AnsweredEvent{
+    studentAnswer: number | undefined
 }
