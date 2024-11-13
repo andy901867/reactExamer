@@ -3,25 +3,14 @@ import {CocheeContext} from '../store/cocheeProvider'
 import Mode from '../enums/mode';
 import EventEmitter from '../utils/EventEmitter';
 import { RemarkQuestionEvent,TfAnsweredEvent } from '../types/EventTypes';
+import { TfQuestion } from '../types/QuestionTypes';
 
 interface TrueFalseProps {
     question: TfQuestion;
     questionNo: number;//題號
     fontSize: IFontSize;
 }
-interface TfQuestion {
-    id:number;
-    question:string;
-    answer: number;//某個option的Id
-    exp: string;
-    options: Array<tfOption>;
-    student_answer?: number; //某個option的Id
-}
 
-interface tfOption {
-    optionid: number;
-    optiontext: string;
-}
 
 interface IFontSize{
   questionSize: number;
@@ -44,13 +33,6 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
     const [isShowAnswer, setIsShowAnswer] = useState(!isDuringTest);
     const [isRemarked, setIsRemarked] = useState(false);        
 
-    //學生作答是否正確
-    const isCorrect = useMemo(()=>{
-      if(studentAnswer!=undefined){
-        return studentAnswer === question.answer
-      }
-      return undefined; //未作答
-    },[studentAnswer,question.answer])
     let isShowExplain = !isDuringTest || (mode === Mode.practice && isShowAnswer);
 
     useEffect(()=>{
@@ -99,6 +81,15 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
       }
       EventEmitter.emit(`RemarkQuestion${question.id}`,emitData);
     }
+
+    const isOptionCorrect = (optionId:number) =>{
+      return optionId == question.answer;
+    }
+
+    const isUserChooseOption = (optionId:number) =>{
+      return optionId == studentAnswer;
+    }
+      
     
 
     return (
@@ -117,13 +108,7 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
                   }
                   {isDuringTest && 
                     <i className={`fa-bookmark pointer ${isRemarked?'fas text-warning':'far text-muted'}`} onClick={handleRemark}></i>
-                  }
-                  {
-                    // !isDuringTest &&
-                    // <button className="mybtn fz13 text-white bg-danger">
-                    //   <i className="fas fa-exclamation-triangle mr-1"></i>錯誤回報
-                    // </button>
-                  }                                                                                
+                  }                                                                               
                 </div>
             </div>
             {/* END: 題目 */}
@@ -132,22 +117,21 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
                 <div className="row">
                   {question.options.map( option => (
                     <div className="col-md-6 col-12 mb-3">
-                      <label className="option" v-bind:class="[{defaultmouse:ontest==false},{'correct_option':show_answer && option.correct_option}]">
+                      <label className="option">
                         <input type="radio" className="d-none" value={option.optionid} onChange={handleOnChange } checked={studentAnswer === option.optionid} disabled={!isDuringTest} />
                         <div className={`ripple-container 
-                          ${isShowAnswer && option.optionid == question.answer &&((isCorrect && mode===Mode.practice && option.optionid == studentAnswer) || (!isCorrect && mode===Mode.exam)) ? "correct_option":""} 
-                          ${isShowAnswer && isCorrect === false && option.optionid == studentAnswer ? "wrong_option":""}`}></div>
+                          ${isShowAnswer && isOptionCorrect(option.optionid) && !isUserChooseOption(option.optionid) && mode===Mode.exam  ? "correct_option":""} 
+                          ${isShowAnswer && isUserChooseOption(option.optionid) && !isOptionCorrect(option.optionid) ? "wrong_option":""}`}></div>
                         <span style={{fontSize:`${fontSize.optionSize}px`}}>{option.optiontext}</span>
                         <div className="option-icons">
-                          { mode === Mode.exam && isShowAnswer && isCorrect === undefined && option.optionid == question.answer &&
-                            <span className="fz12 mybtn px-1 py-0 bg-danger defaultmouse"
-                            v-if="show_answer && option.correct_option && question.student_answer==''">未作答</span>
+                          { mode === Mode.exam && isShowAnswer && studentAnswer === undefined && isOptionCorrect(option.optionid) &&
+                            <span className="fz12 mybtn px-1 py-0 bg-danger defaultmouse">未作答</span>
                           }                          
-                          {isShowAnswer && option.optionid == question.answer && ((mode===Mode.practice && option.optionid == studentAnswer) || (mode===Mode.exam)) &&
+                          {isShowAnswer && isOptionCorrect(option.optionid) && ((isUserChooseOption(option.optionid) && mode === Mode.practice)|| mode===Mode.exam)  &&
                             <i className="fas fa-check option-checked" style={{opacity:1}}></i>
                           }
                           {
-                            isShowAnswer && isCorrect === false && option.optionid == studentAnswer &&
+                            isShowAnswer && isUserChooseOption(option.optionid) && !isOptionCorrect(option.optionid) &&
                             <i className="fas fa-times option-checked"></i>
                           }
                         </div>

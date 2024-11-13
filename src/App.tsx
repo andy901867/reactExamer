@@ -3,14 +3,16 @@ import './App.css'
 import './assets/mybootstrap.scss'
 
 import {CocheeContext} from './store/cocheeProvider'
+import { useAxios } from './store/axiosProvider'
 
+//components
 import ButtonRadioSelector from './components/ButtonRadioSelector'
 import TrueFalse from './components/TrueFalse'
 import QuestionNavButton from './components/QuestionNavButton'
 import CountDownTimer,{TimerHanlde} from './components/CountDownTimer'
 import ConfirmEndExamModal, {ModalHandle} from './components/modals/ConfirmEndExamModal';
 
-import tfQuestionsData from './questionData/TfQuestions'
+import { TfQuestion } from './types/QuestionTypes'
 import Mode from './enums/mode'
 import EventEmitter from './utils/EventEmitter';
 import { TfAnsweredEvent } from './types/EventTypes';
@@ -59,7 +61,16 @@ function App() {
     }
   }
 
-  const [tfQuestions, setTfQuestions] = useState(tfQuestionsData);
+  const axios = useAxios();
+
+  //mounted
+  useEffect(()=>{
+    axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
+      setTfQuestions(resp.data);
+    })
+  },[])
+
+  const [tfQuestions, setTfQuestions] = useState<Array<TfQuestion>>([]);
 
   //設定題目作答時的監聽器，好讓題目作答時更新題目的狀態
   const isQuestionListenerAdded = useRef(false);
@@ -150,9 +161,15 @@ function App() {
         <div className='col-8 d-flex flex-column'>
           <div className="shadow bg-white p-2 position-sticky top-0 left-0" style={{zIndex:10}}>
             <div className='d-flex justify-content-between align-items-center'>
-              <CountDownTimer duration={60} endCallBack={endExam} ref={timerRef}></CountDownTimer>
+              <div>
+                {mode===Mode.exam &&
+                  <CountDownTimer duration={60} endCallBack={endExam} ref={timerRef}></CountDownTimer>
+                }
+              </div>
               <div className='d-flex align-items-center'>
-                <button className='btn btn-primary' onClick={openConfirmModal}>結束考試</button>
+                {mode===Mode.exam &&
+                  <button className='btn btn-primary' onClick={openConfirmModal}>結束考試</button>
+                }                
                 <div className='ms-1'>
                   <ButtonRadioSelector items={fontSizeSelector} selectedValue={selectedFontSizeValue} onValueChange={getFontSize}></ButtonRadioSelector>
                 </div>
