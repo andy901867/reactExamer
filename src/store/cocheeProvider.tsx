@@ -20,7 +20,6 @@ export const CocheeContext = createContext({value:defaultValue,updateValue:(key:
 export const CocheeProvider = ({children}:Props)=>{
     const [value,setValue] = useState<ContextValue>(defaultValue);
     const updateValue = (key:string, newValue:any) => {
-        console.log("update cochee value")
         setValue(prevValue => ({
             ...prevValue,
             [key]: newValue,

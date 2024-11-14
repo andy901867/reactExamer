@@ -6,6 +6,7 @@ interface Props{
 }
 
 export interface TimerHanlde{
+    start:Function
     stop:Function
 }
 
@@ -23,10 +24,6 @@ const CountDownTimer = forwardRef<TimerHanlde,Props>(({duration,endCallBack},ref
         const formatedSeconds:string = Math.floor(seconds/10)<1 ? "0"+seconds : seconds.toString();
         return `${formatedHours}:${formatedMinutes}:${formatedSeconds}`;
     },[remainingTime])
-
-    useEffect(()=>{
-        startCountDown()
-    },[])
 
     const startCountDown = ()=>{
         let currentRemainingTime = duration;
@@ -50,7 +47,6 @@ const CountDownTimer = forwardRef<TimerHanlde,Props>(({duration,endCallBack},ref
             }
         }
         reqRef.current = requestAnimationFrame(step)
-        console.log("開始倒數")
     }
 
     const stopCountDown = ()=>{
@@ -63,6 +59,9 @@ const CountDownTimer = forwardRef<TimerHanlde,Props>(({duration,endCallBack},ref
 
     useImperativeHandle(ref,()=>{
         return{
+            start(){
+                return startCountDown();
+            },
             stop(){
                 return stopCountDown();
             }

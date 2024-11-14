@@ -43,7 +43,7 @@ const smoothScrollToChild = (parentElement:HTMLElement, childElement:HTMLElement
 }
 
 function App() {
-
+  const axios = useAxios();
   const fontSizeSelector = [
     {name: "小",value:"s", fontSize:{questionSize:20, optionSize: 16}},
     {name: "中",value:"m", fontSize:{questionSize:24, optionSize: 18}},
@@ -59,14 +59,19 @@ function App() {
       setSelectedFontSize(selected.fontSize);
       setSelectedFontSizeValue(value);
     }
-  }
-
-  const axios = useAxios();
+  } 
+  
+  //useRef
+  const questionScroller = useRef<HTMLDivElement | null>(null);
+  const tureFalseRef = useRef<(HTMLDivElement|null)[]>([]);
+  const timerRef = useRef<TimerHanlde>(null);
+  const endExamRef = useRef<ModalHandle>(null);
 
   //mounted
   useEffect(()=>{
     axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
       setTfQuestions(resp.data);
+      timerRef.current?.start();
     })
   },[])
 
@@ -101,11 +106,7 @@ function App() {
     
   }, [tfQuestions]);
 
-  //useRef
-  const questionScroller = useRef<HTMLDivElement | null>(null);
-  const tureFalseRef = useRef<(HTMLDivElement|null)[]>([]);
-  const timerRef = useRef<TimerHanlde>(null);
-  const endExamRef = useRef<ModalHandle>(null);
+  
 
   const navigateToQuestion = (type:string, questionId:Number)=>{    
     let targetElement:HTMLElement | null = null;

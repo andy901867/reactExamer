@@ -124,7 +124,7 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
                           ${isShowAnswer && isUserChooseOption(option.optionid) && !isOptionCorrect(option.optionid) ? "wrong_option":""}`}></div>
                         <span style={{fontSize:`${fontSize.optionSize}px`}}>{option.optiontext}</span>
                         <div className="option-icons">
-                          { mode === Mode.exam && isShowAnswer && studentAnswer === undefined && isOptionCorrect(option.optionid) &&
+                          { mode === Mode.exam && isShowAnswer && (studentAnswer === undefined || studentAnswer === null) && isOptionCorrect(option.optionid) &&
                             <span className="fz12 mybtn px-1 py-0 bg-danger defaultmouse">未作答</span>
                           }                          
                           {isShowAnswer && isOptionCorrect(option.optionid) && ((isUserChooseOption(option.optionid) && mode === Mode.practice)|| mode===Mode.exam)  &&
