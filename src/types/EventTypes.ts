@@ -11,3 +11,7 @@ export interface AnsweredEvent{
 export interface TfAnsweredEvent extends AnsweredEvent{
     studentAnswer: number | undefined
 }
+
+export interface SAnsweredEvent extends AnsweredEvent{
+    studentAnswer: number | undefined
+}

@@ -12,10 +12,11 @@ import QuestionNavButton from './components/QuestionNavButton'
 import CountDownTimer,{TimerHanlde} from './components/CountDownTimer'
 import ConfirmEndExamModal, {ModalHandle} from './components/modals/ConfirmEndExamModal';
 
-import { TfQuestion } from './types/QuestionTypes'
+import { TfQuestion,SQuestion } from './types/QuestionTypes'
 import Mode from './enums/mode'
 import EventEmitter from './utils/EventEmitter';
-import { TfAnsweredEvent } from './types/EventTypes';
+import { TfAnsweredEvent,SAnsweredEvent } from './types/EventTypes';
+import SingleOption from './components/SingleOption'
 
 const smoothScrollToChild = (parentElement:HTMLElement, childElement:HTMLElement, duration=500) => {
   //destination為子元素到父元素頂部的距離
@@ -64,23 +65,30 @@ function App() {
   //useRef
   const questionScroller = useRef<HTMLDivElement | null>(null);
   const tureFalseRef = useRef<(HTMLDivElement|null)[]>([]);
+  const singleOptionRef = useRef<(HTMLDivElement|null)[]>([]);
   const timerRef = useRef<TimerHanlde>(null);
   const endExamRef = useRef<ModalHandle>(null);
 
   //mounted
   useEffect(()=>{
-    axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
+    const TfPromise = axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
       setTfQuestions(resp.data);
+    })
+    const SPromise = axios.get("/questionData/SQuestions.json").then((resp:any)=>{
+      setSQuestions(resp.data);
+    })
+    Promise.all([TfPromise,SPromise]).then(()=>{
       timerRef.current?.start();
     })
   },[])
 
   const [tfQuestions, setTfQuestions] = useState<Array<TfQuestion>>([]);
+  const [sQuestions, setSQuestions] = useState<Array<SQuestion>>([]);
 
   //設定題目作答時的監聽器，好讓題目作答時更新題目的狀態
-  const isQuestionListenerAdded = useRef(false);
+  const isTfQuestionListenerAdded = useRef(false);
   useEffect(() => {
-    if(!isQuestionListenerAdded.current){
+    if(!isTfQuestionListenerAdded.current){
       tfQuestions.forEach(question => {
         const handleTfAnswered = (eventData: TfAnsweredEvent) => {
           setTfQuestions( previousQuestions => {
@@ -101,7 +109,35 @@ function App() {
         };
       });
 
-      isQuestionListenerAdded.current = true;
+      isTfQuestionListenerAdded.current = true;
+    }
+    
+  }, [tfQuestions]);
+
+  const isSQuestionListenerAdded = useRef(false);
+  useEffect(() => {
+    if(!isSQuestionListenerAdded.current){
+      sQuestions.forEach(question => {
+        const handleTfAnswered = (eventData: SAnsweredEvent) => {
+          setTfQuestions( previousQuestions => {
+            return previousQuestions.map(q => {
+              if (q.id === eventData.questionId) {
+                return { ...q, student_answer: eventData.studentAnswer };
+              }
+              return q;
+            });
+          })
+        };
+
+        const sListener = EventEmitter.addListener(`Answered${question.id}`, handleTfAnswered);
+        
+
+        return () => {
+          sListener.remove();
+        };
+      });
+
+      isSQuestionListenerAdded.current = true;
     }
     
   }, [tfQuestions]);
@@ -115,6 +151,9 @@ function App() {
         var elementIndex = tfQuestions.findIndex(question=> question.id == questionId);
         targetElement = tureFalseRef.current[elementIndex];
         break
+      case "s":
+        var elementIndex = sQuestions.findIndex(question=> question.id == questionId);
+        targetElement = singleOptionRef.current[elementIndex];
     }
     if(questionScroller.current && targetElement){
       smoothScrollToChild(questionScroller.current,targetElement)
@@ -149,15 +188,22 @@ function App() {
     <>
       <div className='w-100 flex-grow-1 row g-0'>
         <div className='col-4 bg-primary'>
-        <div>
-          
-          <h3 className="text-white nowrap question-nav-type">是非題</h3>
-          <div className="d-flex question-nav-btns flex-wrap">
-            {tfQuestions.map((question)=>(
-              <QuestionNavButton question={question} handleClick={navigateToQuestion}></QuestionNavButton>
-            ))}
+          <div>          
+            <h3 className="text-white nowrap question-nav-type">是非題</h3>
+            <div className="d-flex question-nav-btns flex-wrap">
+              {tfQuestions.map((question)=>(
+                <QuestionNavButton question={question} handleClick={navigateToQuestion}></QuestionNavButton>
+              ))}
+            </div>
           </div>
-        </div>
+          <div>          
+            <h3 className="text-white nowrap question-nav-type">單選題</h3>
+            <div className="d-flex question-nav-btns flex-wrap">
+              {sQuestions.map((question)=>(
+                <QuestionNavButton question={question} handleClick={navigateToQuestion}></QuestionNavButton>
+              ))}
+            </div>
+          </div>
         </div>
         <div className='col-8 d-flex flex-column'>
           <div className="shadow bg-white p-2 position-sticky top-0 left-0" style={{zIndex:10}}>
@@ -183,6 +229,11 @@ function App() {
                 {tfQuestions.map((question,index)=>(
                   <div className="bg-white rounded shadow-sm mb-3 overflow-hidden" key={question.id} ref={ele => tureFalseRef.current[index]=ele}>
                     <TrueFalse question={question} questionNo={index+1} fontSize={selectedFontSize}></TrueFalse>
+                  </div>
+                ))}
+                {sQuestions.map((question,index)=>(
+                  <div className="bg-white rounded shadow-sm mb-3 overflow-hidden" key={question.id} ref={ele => singleOptionRef.current[index]=ele}>
+                    <SingleOption question={question} questionNo={index+1} fontSize={selectedFontSize}></SingleOption>
                   </div>
                 ))}
               </div>
