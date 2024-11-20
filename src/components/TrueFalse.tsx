@@ -49,6 +49,7 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
       const emitData:TfAnsweredEvent = {
         isAnswered,
         questionId:question.id,
+        type: question.type,
         studentAnswer: studentAnswer
       }
       EventEmitter.emit(`Answered${question.id}`,emitData)
@@ -119,20 +120,19 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
                     <div className="col-md-6 col-12 mb-3">
                       <label className="option">
                         <input type="radio" className="d-none" value={option.optionid} onChange={handleOnChange } checked={studentAnswer === option.optionid} disabled={!isDuringTest} />
-                        <div className={`ripple-container 
-                          ${isShowAnswer && isOptionCorrect(option.optionid) && !isUserChooseOption(option.optionid) && mode===Mode.exam  ? "correct_option":""} 
-                          ${isShowAnswer && isUserChooseOption(option.optionid) && !isOptionCorrect(option.optionid) ? "wrong_option":""}`}></div>
+                        <div className={`ripple-container`}></div>
                         <span style={{fontSize:`${fontSize.optionSize}px`}}>{option.optiontext}</span>
                         <div className="option-icons">
-                          { mode === Mode.exam && isShowAnswer && (studentAnswer === undefined || studentAnswer === null) && isOptionCorrect(option.optionid) &&
-                            <span className="fz12 mybtn px-1 py-0 bg-danger defaultmouse">未作答</span>
-                          }                          
                           {isShowAnswer && isOptionCorrect(option.optionid) && ((isUserChooseOption(option.optionid) && mode === Mode.practice)|| mode===Mode.exam)  &&
-                            <i className="fas fa-check option-checked" style={{opacity:1}}></i>
+                            <div className={`badge ${isUserChooseOption(option.optionid)?'bg-success':'bg-danger'}`} style={{width:'27px'}}>
+                              <i className="fas fa-check"></i>
+                            </div>
                           }
                           {
                             isShowAnswer && isUserChooseOption(option.optionid) && !isOptionCorrect(option.optionid) &&
-                            <i className="fas fa-times option-checked"></i>
+                            <div className='badge bg-danger' style={{width:'27px'}}>
+                              <i className="fas fa-times"></i>
+                            </div>                            
                           }
                         </div>
                       </label>

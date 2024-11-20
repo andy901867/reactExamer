@@ -2,11 +2,11 @@ import {useState, useContext, useMemo, useEffect} from 'react';
 import {CocheeContext} from '../store/cocheeProvider'
 import Mode from '../enums/mode';
 import EventEmitter from '../utils/EventEmitter';
-import { RemarkQuestionEvent,TfAnsweredEvent } from '../types/EventTypes';
-import { SQuestion } from '../types/QuestionTypes';
+import { RemarkQuestionEvent,MAnsweredEvent } from '../types/EventTypes';
+import { MQuestion } from '../types/QuestionTypes';
 
 interface Props {
-    question: SQuestion;
+    question: MQuestion;
     questionNo: number;//題號
     fontSize: IFontSize;
 }
@@ -24,11 +24,11 @@ const defaultFontSize:IFontSize = {
 
 
 
-function SingleOption({question,questionNo,fontSize=defaultFontSize}:Props){
+function MultipleOption({question,questionNo,fontSize=defaultFontSize}:Props){
 
     const {value:{mode,isDuringTest}} = useContext(CocheeContext);
 
-    //studentAnswer為學生選取選項的ID值
+    //studentAnswer為學生選取選項的ID值陣列
     const [studentAnswer, setStudentAnswer] = useState(question.student_answer);
     const [isShowAnswer, setIsShowAnswer] = useState(!isDuringTest);
     const [isRemarked, setIsRemarked] = useState(false);        
@@ -43,36 +43,42 @@ function SingleOption({question,questionNo,fontSize=defaultFontSize}:Props){
 
     useEffect(()=>{
       let isAnswered = false;
-      if(studentAnswer!=undefined){
+      if(studentAnswer.length>0){
         isAnswered = true;
       }
-      const emitData:TfAnsweredEvent = {
+      const emitData:MAnsweredEvent = {
         isAnswered,
         questionId:question.id,
         type: question.type,
         studentAnswer: studentAnswer
       }
       EventEmitter.emit(`Answered${question.id}`,emitData)
-      console.log(emitData)
     },[studentAnswer])
 
 
     const resetQuestion = ()=>{
-      setStudentAnswer(undefined);
+      setStudentAnswer([]);
     }
     
     const handleOnChange = (event:React.ChangeEvent<HTMLInputElement>)=>{
-      const selectedAnswer = parseInt(event.target.value);      
-      setStudentAnswer(selectedAnswer);
+      const selectedAnswer = parseInt(event.target.value);   
+      setStudentAnswer( previousAnswers =>{
+        if(previousAnswers.includes(selectedAnswer)){
+          return previousAnswers.filter(optionId => optionId !== selectedAnswer);
+        }
+        return [...previousAnswers,selectedAnswer]  
+      })
+ 
+      //setStudentAnswer([selectedAnswer]);
 
-      if(mode === Mode.practice){
-        setIsShowAnswer(true);
-        setTimeout(()=>{
-          if(selectedAnswer!=question.answer){
-            resetQuestion();
-          }
-        },350)
-      }
+      // if(mode === Mode.practice){
+      //   setIsShowAnswer(true);
+      //   setTimeout(()=>{
+      //     if(selectedAnswer!=question.answer){
+      //       resetQuestion();
+      //     }
+      //   },350)
+      // }
     }
 
     const handleRemark = ()=>{
@@ -84,12 +90,12 @@ function SingleOption({question,questionNo,fontSize=defaultFontSize}:Props){
       EventEmitter.emit(`RemarkQuestion${question.id}`,emitData);
     }
 
-    const isOptionCorrect = (optionId:number) =>{
-      return optionId == question.answer;
+    const isOptionCorrect = (optionId:number):boolean =>{
+      return question.answer.includes(optionId);
     }
 
-    const isUserChooseOption = (optionId:number) =>{
-      return optionId == studentAnswer;
+    const isUserChooseOption = (optionId:number):boolean =>{
+      return studentAnswer.includes(optionId);
     }
       
     
@@ -104,7 +110,7 @@ function SingleOption({question,questionNo,fontSize=defaultFontSize}:Props){
                 </div>
                 <div className="fz20 nowrap">
                   {mode===Mode.exam && isDuringTest &&
-                    <i className={`fas fa-undo-alt me-1 ${studentAnswer? 'question_reset':'text-muted' }`}
+                    <i className={`fas fa-undo-alt me-1 ${studentAnswer.length>0? 'question_reset':'text-muted' }`}
                       onClick={resetQuestion}>                        
                     </i>
                   }
@@ -120,10 +126,10 @@ function SingleOption({question,questionNo,fontSize=defaultFontSize}:Props){
                   {question.options.map( option => (
                     <div className="col-md-6 col-12 mb-3">
                       <label className="option">
-                        <input type="radio" className="d-none" value={option.optionid} onChange={handleOnChange } checked={studentAnswer === option.optionid} disabled={!isDuringTest} />
+                        <input type="checkbox" className="d-none" value={option.optionid} onChange={handleOnChange } checked={isUserChooseOption(option.optionid)} disabled={!isDuringTest} />
                         <div className={`ripple-container `}></div>
                         <span style={{fontSize:`${fontSize.optionSize}px`}}>{option.optiontext}</span>
-                        <div className="option-icons">
+                        <div className="option-icons">                         
                           {isShowAnswer && isOptionCorrect(option.optionid) && ((isUserChooseOption(option.optionid) && mode === Mode.practice)|| mode===Mode.exam)  &&
                             <div className={`badge ${isUserChooseOption(option.optionid)?'bg-success':'bg-danger'}`} style={{width:'27px'}}>
                               <i className="fas fa-check"></i>
@@ -154,4 +160,4 @@ function SingleOption({question,questionNo,fontSize=defaultFontSize}:Props){
     )
 }
 
-export default SingleOption
+export default MultipleOption

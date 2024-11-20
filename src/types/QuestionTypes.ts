@@ -3,6 +3,8 @@ interface Option {
     optiontext: string;
 }
 
+export type Question = TfQuestion | SQuestion | MQuestion;
+
 export interface TfQuestion {
     id:number;
     question:string;

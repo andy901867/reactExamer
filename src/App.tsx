@@ -1,4 +1,4 @@
-import { useState,useRef,useContext,useEffect } from 'react'
+import { useState,useRef,useContext,useEffect, useMemo } from 'react'
 import './App.css'
 import './assets/mybootstrap.scss'
 
@@ -8,15 +8,16 @@ import { useAxios } from './store/axiosProvider'
 //components
 import ButtonRadioSelector from './components/ButtonRadioSelector'
 import TrueFalse from './components/TrueFalse'
+import SingleOption from './components/SingleOption'
+import MultipleOption from './components/MultipleOption'
 import QuestionNavButton from './components/QuestionNavButton'
 import CountDownTimer,{TimerHanlde} from './components/CountDownTimer'
 import ConfirmEndExamModal, {ModalHandle} from './components/modals/ConfirmEndExamModal';
 
-import { TfQuestion,SQuestion } from './types/QuestionTypes'
+import { Question,TfQuestion,SQuestion,MQuestion } from './types/QuestionTypes'
 import Mode from './enums/mode'
 import EventEmitter from './utils/EventEmitter';
-import { TfAnsweredEvent,SAnsweredEvent } from './types/EventTypes';
-import SingleOption from './components/SingleOption'
+import { AnsweredEvent,TfAnsweredEvent,SAnsweredEvent,MAnsweredEvent } from './types/EventTypes';
 
 const smoothScrollToChild = (parentElement:HTMLElement, childElement:HTMLElement, duration=500) => {
   //destination為子元素到父元素頂部的距離
@@ -66,95 +67,77 @@ function App() {
   const questionScroller = useRef<HTMLDivElement | null>(null);
   const tureFalseRef = useRef<(HTMLDivElement|null)[]>([]);
   const singleOptionRef = useRef<(HTMLDivElement|null)[]>([]);
+  const multipleOptionRef = useRef<Array<HTMLDivElement|null>>([]);
+  const questionHtmlRefs = useRef<(HTMLDivElement|null)[]>([]);
   const timerRef = useRef<TimerHanlde>(null);
   const endExamRef = useRef<ModalHandle>(null);
 
   //mounted
   useEffect(()=>{
     const TfPromise = axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
-      setTfQuestions(resp.data);
+      //setTfQuestions(resp.data);
+      return resp.data;
     })
     const SPromise = axios.get("/questionData/SQuestions.json").then((resp:any)=>{
-      setSQuestions(resp.data);
+      //setSQuestions(resp.data);
+      return resp.data;
     })
-    Promise.all([TfPromise,SPromise]).then(()=>{
+    const mPromise = axios.get("/questionData/MQuestions.json").then((resp:any )=>{
+      //setMQuestions(resp.data);
+      return resp.data;
+    })
+    Promise.all([TfPromise,SPromise,mPromise]).then(([tf,s,m])=>{
+      setQuestions([...tf,...s,...m]);
       timerRef.current?.start();
     })
   },[])
 
-  const [tfQuestions, setTfQuestions] = useState<Array<TfQuestion>>([]);
-  const [sQuestions, setSQuestions] = useState<Array<SQuestion>>([]);
+  const [questions,setQuestions] = useState<Array<Question>>([]);
 
-  //設定題目作答時的監聽器，好讓題目作答時更新題目的狀態
-  const isTfQuestionListenerAdded = useRef(false);
-  useEffect(() => {
-    if(!isTfQuestionListenerAdded.current){
-      tfQuestions.forEach(question => {
-        const handleTfAnswered = (eventData: TfAnsweredEvent) => {
-          setTfQuestions( previousQuestions => {
+  const tfQuestions = useMemo(()=>{
+    return questions.filter(question=>question.type === "tf");
+  },[questions]);
+
+  const sQuestions = useMemo(()=>{
+    return questions.filter(question=>question.type === "s");
+  },[questions]);
+
+  const mQuestions = useMemo(()=>{
+    return questions.filter(question=>question.type === "m");
+  },[questions]);
+
+  //設定題目作答時的監聽器，好讓題目作答時更新題目的狀態  
+  const isQuestionListenerAdded = useRef(false);
+  useEffect(()=>{
+    if(!isQuestionListenerAdded.current && questions.length > 0){
+      questions.forEach(question=>{
+        const handleAnswered = (eventData:AnsweredEvent) => {
+          setQuestions(previousQuestions => {
             return previousQuestions.map(q => {
               if (q.id === eventData.questionId) {
-                return { ...q, student_answer: eventData.studentAnswer };
+                const renewedQ: Question = { ...q }; // 創建新物件，避免直接修改
+                renewedQ.student_answer = eventData.studentAnswer; // 更新值
+                return renewedQ;
               }
               return q;
             });
-          })
-        };
-
-        const tfListener = EventEmitter.addListener(`Answered${question.id}`, handleTfAnswered);
-        
-
-        return () => {
-          tfListener.remove();
-        };
-      });
-
-      isTfQuestionListenerAdded.current = true;
+          });
+        }
+        const listener = EventEmitter.addListener(`Answered${question.id}`,handleAnswered);
+        return ()=>{
+          listener.remove();
+        }
+      })
+      isQuestionListenerAdded.current = true;
     }
-    
-  }, [tfQuestions]);
-
-  const isSQuestionListenerAdded = useRef(false);
-  useEffect(() => {
-    if(!isSQuestionListenerAdded.current){
-      sQuestions.forEach(question => {
-        const handleTfAnswered = (eventData: SAnsweredEvent) => {
-          setTfQuestions( previousQuestions => {
-            return previousQuestions.map(q => {
-              if (q.id === eventData.questionId) {
-                return { ...q, student_answer: eventData.studentAnswer };
-              }
-              return q;
-            });
-          })
-        };
-
-        const sListener = EventEmitter.addListener(`Answered${question.id}`, handleTfAnswered);
-        
-
-        return () => {
-          sListener.remove();
-        };
-      });
-
-      isSQuestionListenerAdded.current = true;
-    }
-    
-  }, [tfQuestions]);
-
+  },[questions])  
   
 
   const navigateToQuestion = (type:string, questionId:Number)=>{    
+    console.log(type,questionId)
     let targetElement:HTMLElement | null = null;
-    switch(type){
-      case "tf":
-        var elementIndex = tfQuestions.findIndex(question=> question.id == questionId);
-        targetElement = tureFalseRef.current[elementIndex];
-        break
-      case "s":
-        var elementIndex = sQuestions.findIndex(question=> question.id == questionId);
-        targetElement = singleOptionRef.current[elementIndex];
-    }
+    var elementIndex = questions.findIndex(question => question.id === questionId);
+    targetElement = questionHtmlRefs.current[elementIndex];
     if(questionScroller.current && targetElement){
       smoothScrollToChild(questionScroller.current,targetElement)
     }
@@ -175,7 +158,7 @@ function App() {
           console.log("答對了")
         }
       })
-      console.log(tfQuestions)
+      console.log(questions)
     }
   }
 
@@ -187,7 +170,7 @@ function App() {
   return (
     <>
       <div className='w-100 flex-grow-1 row g-0'>
-        <div className='col-4 bg-primary'>
+        <div className='col-4 bg-success'>
           <div>          
             <h3 className="text-white nowrap question-nav-type">是非題</h3>
             <div className="d-flex question-nav-btns flex-wrap">
@@ -204,6 +187,14 @@ function App() {
               ))}
             </div>
           </div>
+          <div>          
+            <h3 className="text-white nowrap question-nav-type">多選題</h3>
+            <div className="d-flex question-nav-btns flex-wrap">
+              {mQuestions.map((question)=>(
+                <QuestionNavButton question={question} handleClick={navigateToQuestion}></QuestionNavButton>
+              ))}
+            </div>
+          </div>
         </div>
         <div className='col-8 d-flex flex-column'>
           <div className="shadow bg-white p-2 position-sticky top-0 left-0" style={{zIndex:10}}>
@@ -215,7 +206,7 @@ function App() {
               </div>
               <div className='d-flex align-items-center'>
                 {mode===Mode.exam &&
-                  <button className='btn btn-primary' onClick={openConfirmModal}>結束考試</button>
+                  <button className='btn btn-success' onClick={openConfirmModal}>結束考試</button>
                 }                
                 <div className='ms-1'>
                   <ButtonRadioSelector items={fontSizeSelector} selectedValue={selectedFontSizeValue} onValueChange={getFontSize}></ButtonRadioSelector>
@@ -225,17 +216,31 @@ function App() {
           </div>
           <div className="flex-grow-1">
             <div className="w-100 h-100 position-absolute top-0 start-0 overflow-auto pt-3" ref={questionScroller}>              
-              <div className="container">              
-                {tfQuestions.map((question,index)=>(
-                  <div className="bg-white rounded shadow-sm mb-3 overflow-hidden" key={question.id} ref={ele => tureFalseRef.current[index]=ele}>
-                    <TrueFalse question={question} questionNo={index+1} fontSize={selectedFontSize}></TrueFalse>
-                  </div>
-                ))}
-                {sQuestions.map((question,index)=>(
-                  <div className="bg-white rounded shadow-sm mb-3 overflow-hidden" key={question.id} ref={ele => singleOptionRef.current[index]=ele}>
-                    <SingleOption question={question} questionNo={index+1} fontSize={selectedFontSize}></SingleOption>
-                  </div>
-                ))}
+              <div className="container">
+                {
+                  questions.map((question,index)=>{
+                    switch(question.type){
+                      case "tf":
+                        return (    
+                          <div className="bg-white rounded shadow-sm mb-3 overflow-hidden" key={question.id} ref={ele=>questionHtmlRefs.current[index]=ele}>
+                            <TrueFalse question={question as TfQuestion} questionNo={index+1} fontSize={selectedFontSize}></TrueFalse>
+                          </div>
+                        )
+                      case "s":
+                        return (
+                          <div className="bg-white rounded shadow-sm mb-3 overflow-hidden" key={question.id} ref={ele=>questionHtmlRefs.current[index]=ele}>
+                            <SingleOption question={question as SQuestion} questionNo={index+1} fontSize={selectedFontSize}></SingleOption>
+                          </div>
+                        )
+                      case "m":
+                        return(
+                          <div className="bg-white rounded shadow-sm mb-3 overflow-hidden" key={question.id} ref={ele=>questionHtmlRefs.current[index]=ele}>
+                            <MultipleOption question={question as MQuestion} questionNo={index+1} fontSize={selectedFontSize}></MultipleOption>
+                          </div>
+                        )
+                    }
+                  })
+                }                              
               </div>
             </div>
           </div>

@@ -3,15 +3,22 @@ export interface RemarkQuestionEvent{
     questionId: number
 }
 
-export interface AnsweredEvent{
+export interface __BaseAnsweredEvent{
     isAnswered: boolean,
     questionId: number
+    type: string
 }
 
-export interface TfAnsweredEvent extends AnsweredEvent{
+export type AnsweredEvent = TfAnsweredEvent | SAnsweredEvent | MAnsweredEvent
+
+export interface TfAnsweredEvent extends __BaseAnsweredEvent{
     studentAnswer: number | undefined
 }
 
-export interface SAnsweredEvent extends AnsweredEvent{
+export interface SAnsweredEvent extends __BaseAnsweredEvent{
     studentAnswer: number | undefined
+}
+
+export interface MAnsweredEvent extends __BaseAnsweredEvent{
+    studentAnswer: Array<number>
 }

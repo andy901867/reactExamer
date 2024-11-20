@@ -1,4 +1,7 @@
+$primary: #f5b642;
+$success: #356dde;
 @import "../node_modules/bootstrap/scss/bootstrap.scss";
+
 
 $process: #00CCFF;
 $depl: #2AB2C1;
@@ -344,9 +347,6 @@ $depl: #2AB2C1;
       &~.ripple-container{
         display:block;
         background-color: lighten($primary,10);
-      }
-      &~span{
-        color: white;
       }
       &~.option-icons .option-checked{
         opacity:1;
