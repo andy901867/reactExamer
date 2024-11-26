@@ -12,12 +12,13 @@ import SingleOption from './components/SingleOption'
 import MultipleOption from './components/MultipleOption'
 import QuestionNavButton from './components/QuestionNavButton'
 import CountDownTimer,{TimerHanlde} from './components/CountDownTimer'
-import ConfirmEndExamModal, {ModalHandle} from './components/modals/ConfirmEndExamModal';
+import ConfirmEndExamModal, {ModalHandle as ComfirmEndExamModalHandle} from './components/modals/ConfirmEndExamModal';
+import ScoreModal,{ModalHandle as ScoreModalHandle} from './components/modals/ScoreModal'
 
 import { Question,TfQuestion,SQuestion,MQuestion } from './types/QuestionTypes'
 import Mode from './enums/mode'
 import EventEmitter from './utils/EventEmitter';
-import { AnsweredEvent,TfAnsweredEvent,SAnsweredEvent,MAnsweredEvent } from './types/EventTypes';
+import { AnsweredEvent} from './types/EventTypes';
 
 const smoothScrollToChild = (parentElement:HTMLElement, childElement:HTMLElement, duration=500) => {
   //destination為子元素到父元素頂部的距離
@@ -65,12 +66,10 @@ function App() {
   
   //useRef
   const questionScroller = useRef<HTMLDivElement | null>(null);
-  const tureFalseRef = useRef<(HTMLDivElement|null)[]>([]);
-  const singleOptionRef = useRef<(HTMLDivElement|null)[]>([]);
-  const multipleOptionRef = useRef<Array<HTMLDivElement|null>>([]);
   const questionHtmlRefs = useRef<(HTMLDivElement|null)[]>([]);
   const timerRef = useRef<TimerHanlde>(null);
-  const endExamRef = useRef<ModalHandle>(null);
+  const endExamRef = useRef<ComfirmEndExamModalHandle>(null);
+  const scoreModalRef = useRef<ScoreModalHandle>(null);
 
   //mounted
   useEffect(()=>{
@@ -103,8 +102,15 @@ function App() {
   },[questions]);
 
   const mQuestions = useMemo(()=>{
-    return questions.filter(question=>question.type === "m");
+    return questions.filter(question=>question.type === "m") as MQuestion[];
   },[questions]);
+
+  const duration = 60; //unit:second
+
+  //states
+  const [score,setScore] = useState<number| null>(null);
+  const [correctCount,setCorrectCount] = useState<number | null>(null);
+  const [shouldOpenScoreModal, setShouldOpenScoreModal] = useState<boolean>(false);
 
   //設定題目作答時的監聽器，好讓題目作答時更新題目的狀態  
   const isQuestionListenerAdded = useRef(false);
@@ -143,27 +149,63 @@ function App() {
     }
   }
 
-  const {value:{mode},updateValue:updateCocheeContext} = useContext(CocheeContext)
+  const {value:{mode,isDuringTest},updateValue:updateCocheeContext} = useContext(CocheeContext)
 
   const openConfirmModal = ()=>{
     endExamRef.current?.openModal(); 
   }
+  const openScoreModal = ()=>{
+    scoreModalRef.current?.openModal();
+  }
 
   const endExam = ()=>{
     updateCocheeContext("isDuringTest", false);
+    
     //如果是測驗模式就要算分數
     if(mode === Mode.exam){
+      //滿分100分，每題平均分配分數權重
+      const scorePerQuestion = 100 / questions.length;
+      let correctCount = 0;
+      let socre = 0;
       tfQuestions.forEach(question=>{
         if(question.student_answer === question.answer){
-          console.log("答對了")
+          console.log("答對了tf")
+          correctCount++;
+          socre += scorePerQuestion;
         }
       })
-      console.log(questions)
+      sQuestions.forEach(question=>{
+        if(question.student_answer === question.answer){
+          console.log("答對了s")
+          correctCount++;
+          socre += scorePerQuestion;
+        }
+      })
+      mQuestions.forEach(question=>{
+        if(question.student_answer.length === question.answer.length){
+          const isCorrect = question.answer.every(answer=>{
+            return question.student_answer.includes(answer);
+          })
+          if(isCorrect){
+            console.log("答對了m")
+            correctCount++;
+            socre += scorePerQuestion;
+          }
+        }
+      })      
+      setCorrectCount(correctCount);
+      setScore(Math.round(socre));
+      setShouldOpenScoreModal(true);
     }
   }
 
+  useEffect(()=>{
+    scoreModalRef.current?.openModal();
+  },[shouldOpenScoreModal,score])
+
   const handleEndBtn = ()=>{
     timerRef.current?.stop();
+    endExamRef.current?.closeModal();
     //endExam();
   }
 
@@ -175,7 +217,7 @@ function App() {
             <h3 className="text-white nowrap question-nav-type">是非題</h3>
             <div className="d-flex question-nav-btns flex-wrap">
               {tfQuestions.map((question)=>(
-                <QuestionNavButton question={question} handleClick={navigateToQuestion}></QuestionNavButton>
+                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion}></QuestionNavButton>
               ))}
             </div>
           </div>
@@ -183,7 +225,7 @@ function App() {
             <h3 className="text-white nowrap question-nav-type">單選題</h3>
             <div className="d-flex question-nav-btns flex-wrap">
               {sQuestions.map((question)=>(
-                <QuestionNavButton question={question} handleClick={navigateToQuestion}></QuestionNavButton>
+                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion}></QuestionNavButton>
               ))}
             </div>
           </div>
@@ -191,7 +233,7 @@ function App() {
             <h3 className="text-white nowrap question-nav-type">多選題</h3>
             <div className="d-flex question-nav-btns flex-wrap">
               {mQuestions.map((question)=>(
-                <QuestionNavButton question={question} handleClick={navigateToQuestion}></QuestionNavButton>
+                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion}></QuestionNavButton>
               ))}
             </div>
           </div>
@@ -200,12 +242,15 @@ function App() {
           <div className="shadow bg-white p-2 position-sticky top-0 left-0" style={{zIndex:10}}>
             <div className='d-flex justify-content-between align-items-center'>
               <div>
-                {mode===Mode.exam &&
-                  <CountDownTimer duration={60} endCallBack={endExam} ref={timerRef}></CountDownTimer>
+                {mode===Mode.exam && 
+                  <CountDownTimer duration={duration} endCallBack={endExam} ref={timerRef}></CountDownTimer>
                 }
               </div>
               <div className='d-flex align-items-center'>
-                {mode===Mode.exam &&
+                {mode === Mode.exam && !isDuringTest &&
+                  <button className='btn btn-success' onClick={openScoreModal}>查看成績</button>
+                }
+                {mode===Mode.exam && isDuringTest &&
                   <button className='btn btn-success' onClick={openConfirmModal}>結束考試</button>
                 }                
                 <div className='ms-1'>
@@ -247,7 +292,11 @@ function App() {
         </div>
       </div>
 
-      <ConfirmEndExamModal ref={endExamRef} onConfirm={handleEndBtn}></ConfirmEndExamModal>     
+      <ConfirmEndExamModal ref={endExamRef} onConfirm={handleEndBtn}></ConfirmEndExamModal>
+      {score !== null &&
+        <ScoreModal ref={scoreModalRef} score={score} usedTime={duration - (timerRef.current?.remainingTime? timerRef.current?.remainingTime:0)} correctCount={correctCount?correctCount:0} totalCount={questions.length}></ScoreModal>
+      }
+      
     </>
   )
 }

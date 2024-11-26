@@ -1,30 +1,38 @@
 import { Modal } from 'bootstrap';
-import { useRef, forwardRef,useImperativeHandle } from 'react';
+import { useRef, forwardRef,useImperativeHandle,useEffect } from 'react';
 
 export interface ModalHandle{
-    openModal:Function
+    openModal:Function,
+    closeModal: Function
 }
 
 interface Props{
     onConfirm:Function
 }
 const ConfirmEndExamModal = forwardRef<ModalHandle,Props>(({onConfirm},ref)=>{
+    const componentElement = useRef<HTMLDivElement|null>(null);
+    const modal = useRef<Modal|null>(null);
+    useEffect(()=>{
+        if(componentElement.current!==null){
+            modal.current = new Modal(componentElement.current);
+        }
+    },[componentElement])
+
     const handleEndBtn = ()=>{
         onConfirm();
     }
     useImperativeHandle(ref,()=>{
         return{
             openModal(){
-                const modalEl = document.getElementById("confirmEndExamModal");
-                if(modalEl!==null){
-                    const modal = new Modal(modalEl);
-                    modal.show();
-                }
+                modal.current?.show();
+            },
+            closeModal(){
+                modal.current?.hide();
             }
         }
     })
     return(
-        <div className="modal" id="confirmEndExamModal">
+        <div className="modal" ref={componentElement}>
             <div className="modal-dialog">
                 <div className="modal-content">
                     <div className="modal-header">

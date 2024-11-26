@@ -8,6 +8,7 @@ interface Props{
 export interface TimerHanlde{
     start:Function
     stop:Function
+    remainingTime:number
 }
 
 const CountDownTimer = forwardRef<TimerHanlde,Props>(({duration,endCallBack},ref)=>{
@@ -64,7 +65,8 @@ const CountDownTimer = forwardRef<TimerHanlde,Props>(({duration,endCallBack},ref
             },
             stop(){
                 return stopCountDown();
-            }
+            },
+            remainingTime:remainingTime
         } 
     })
     

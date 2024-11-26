@@ -4,14 +4,15 @@ import {RemarkQuestionEvent,AnsweredEvent} from "../types/EventTypes";
 
 interface Props{
     question:Question,
-    handleClick: Function
+    handleClick: Function,
+    questionNo: number
 }
 interface Question {
     id:number;
     type:string;
 }
 
-const QuestionNavButton = ({question,handleClick}:Props)=>{
+const QuestionNavButton = ({question,handleClick, questionNo}:Props)=>{
     const [isRemarked, setIsRemarked] = useState(false);
     const [isAnswered, setIsAnswered] = useState(false);
     useEffect(()=>{        
@@ -34,7 +35,7 @@ const QuestionNavButton = ({question,handleClick}:Props)=>{
     return (
         <div onClick={navigateToQuestion}>
             <div className="mx-1 d-flex flex-column align-items-center mb-2">
-                <button className={`mybtn navlabel mb-1 ${isAnswered?'bg-process':''}`}>1</button>
+                <button className={`mybtn navlabel mb-1 ${isAnswered?'bg-process':''}`}>{questionNo}</button>
                 <div className={`w-75 ${isRemarked?'remarked':'unremark'}`}></div>
             </div>
         </div>

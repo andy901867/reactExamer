@@ -99,6 +99,7 @@ function TrueFalse({question,questionNo,fontSize=defaultFontSize}:TrueFalseProps
             <div className="d-flex justify-content-between p-3 border-bottom">
                 <div style={{fontSize:`${fontSize.questionSize}px`}}>
                     <span>{questionNo}. </span>
+                    <span className='fw-bold'>[是非題]</span>
                     <span className="m-0">{question.question}</span>
                 </div>
                 <div className="fz20 nowrap">
