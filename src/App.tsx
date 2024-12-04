@@ -140,7 +140,6 @@ function App() {
   
 
   const navigateToQuestion = (type:string, questionId:Number)=>{    
-    console.log(type,questionId)
     let targetElement:HTMLElement | null = null;
     var elementIndex = questions.findIndex(question => question.id === questionId);
     targetElement = questionHtmlRefs.current[elementIndex];
@@ -169,14 +168,12 @@ function App() {
       let socre = 0;
       tfQuestions.forEach(question=>{
         if(question.student_answer === question.answer){
-          console.log("答對了tf")
           correctCount++;
           socre += scorePerQuestion;
         }
       })
       sQuestions.forEach(question=>{
         if(question.student_answer === question.answer){
-          console.log("答對了s")
           correctCount++;
           socre += scorePerQuestion;
         }
@@ -187,7 +184,6 @@ function App() {
             return question.student_answer.includes(answer);
           })
           if(isCorrect){
-            console.log("答對了m")
             correctCount++;
             socre += scorePerQuestion;
           }
@@ -211,34 +207,34 @@ function App() {
 
   return (
     <>
-      <div className='w-100 flex-grow-1 row g-0'>
-        <div className='col-4 bg-success'>
+      <div className='w-100 flex-grow-1 row flex-column-reverse flex-md-row g-0'>
+        <div className='col-md-4 bg-success p-3 pb-md-3 pb-0 overflow-auto d-flex flex-md-column'>
           <div>          
-            <h3 className="text-white nowrap question-nav-type">是非題</h3>
-            <div className="d-flex question-nav-btns flex-wrap">
+            <h3 className="text-white nowrap question-nav-type d-none d-md-inline">是非題</h3>
+            <div className="question-nav-btns">
               {tfQuestions.map((question)=>(
-                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion}></QuestionNavButton>
+                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
               ))}
             </div>
           </div>
           <div>          
-            <h3 className="text-white nowrap question-nav-type">單選題</h3>
-            <div className="d-flex question-nav-btns flex-wrap">
+            <h3 className="text-white nowrap question-nav-type d-none d-md-inline">單選題</h3>
+            <div className="question-nav-btns">
               {sQuestions.map((question)=>(
-                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion}></QuestionNavButton>
+                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
               ))}
             </div>
           </div>
           <div>          
-            <h3 className="text-white nowrap question-nav-type">多選題</h3>
-            <div className="d-flex question-nav-btns flex-wrap">
+            <h3 className="text-white nowrap question-nav-type d-none d-md-inline">多選題</h3>
+            <div className="question-nav-btns">
               {mQuestions.map((question)=>(
-                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion}></QuestionNavButton>
+                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
               ))}
             </div>
           </div>
         </div>
-        <div className='col-8 d-flex flex-column'>
+        <div className='col-md-8 d-flex flex-column flex-grow-1'>
           <div className="shadow bg-white p-2 position-sticky top-0 left-0" style={{zIndex:10}}>
             <div className='d-flex justify-content-between align-items-center'>
               <div>

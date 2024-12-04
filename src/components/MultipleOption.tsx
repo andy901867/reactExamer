@@ -125,7 +125,7 @@ function MultipleOption({question,questionNo,fontSize=defaultFontSize}:Props){
             <div className="px-3 pt-3">
                 <div className="row">
                   {question.options.map( option => (
-                    <div className="col-md-6 col-12 mb-3">
+                    <div className="col-md-6 col-12 mb-3" key={option.optionid}>
                       <label className="option">
                         <input type="checkbox" className="d-none" value={option.optionid} onChange={handleOnChange } checked={isUserChooseOption(option.optionid)} disabled={!isDuringTest} />
                         <div className={`ripple-container `}></div>
