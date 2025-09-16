@@ -75,15 +75,18 @@ function App() {
   useEffect(()=>{
     const TfPromise = axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
       //setTfQuestions(resp.data);
-      return resp.data;
+      const hasData = Array.isArray(resp.data);
+      return hasData ? resp.data : [];
     })
     const SPromise = axios.get("/questionData/SQuestions.json").then((resp:any)=>{
       //setSQuestions(resp.data);
-      return resp.data;
+      const hasData = Array.isArray(resp.data);
+      return hasData ? resp.data : [];
     })
     const mPromise = axios.get("/questionData/MQuestions.json").then((resp:any )=>{
       //setMQuestions(resp.data);
-      return resp.data;
+      const hasData = Array.isArray(resp.data);
+      return hasData ? resp.data : [];
     })
     Promise.all([TfPromise,SPromise,mPromise]).then(([tf,s,m])=>{
       setQuestions([...tf,...s,...m]);
@@ -105,7 +108,7 @@ function App() {
     return questions.filter(question=>question.type === "m") as MQuestion[];
   },[questions]);
 
-  const duration = 60; //unit:second
+  const duration = 7200; //unit:second
 
   //states
   const [score,setScore] = useState<number| null>(null);
@@ -209,30 +212,39 @@ function App() {
     <>
       <div className='w-100 flex-grow-1 row flex-column-reverse flex-md-row g-0'>
         <div className='col-md-4 bg-success p-3 pb-md-3 pb-0 overflow-auto d-flex flex-md-column'>
-          <div>          
-            <h3 className="text-white nowrap question-nav-type d-none d-md-inline">是非題</h3>
-            <div className="question-nav-btns">
-              {tfQuestions.map((question)=>(
-                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
-              ))}
+          {
+            tfQuestions.length> 0 && 
+            <div>          
+              <h3 className="text-white nowrap question-nav-type d-none d-md-inline">是非題</h3>
+              <div className="question-nav-btns">
+                {tfQuestions.map((question)=>(
+                  <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
+                ))}
+              </div>
             </div>
-          </div>
-          <div>          
-            <h3 className="text-white nowrap question-nav-type d-none d-md-inline">單選題</h3>
-            <div className="question-nav-btns">
-              {sQuestions.map((question)=>(
-                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
-              ))}
+          }
+          {
+            sQuestions.length> 0 && 
+            <div>          
+              <h3 className="text-white nowrap question-nav-type d-none d-md-inline">單選題</h3>
+              <div className="question-nav-btns">
+                {sQuestions.map((question)=>(
+                  <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
+                ))}
+              </div>
             </div>
-          </div>
-          <div>          
-            <h3 className="text-white nowrap question-nav-type d-none d-md-inline">多選題</h3>
-            <div className="question-nav-btns">
-              {mQuestions.map((question)=>(
-                <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
-              ))}
+          }
+          {
+            mQuestions.length > 0 &&
+            <div>          
+              <h3 className="text-white nowrap question-nav-type d-none d-md-inline">多選題</h3>
+              <div className="question-nav-btns">
+                {mQuestions.map((question)=>(
+                  <QuestionNavButton question={question} questionNo={questions.findIndex(q=> q.id===question.id)+1} handleClick={navigateToQuestion} key={question.id}></QuestionNavButton>
+                ))}
+              </div>
             </div>
-          </div>
+          }
         </div>
         <div className='col-md-8 d-flex flex-column flex-grow-1'>
           <div className="shadow bg-white p-2 position-sticky top-0 left-0" style={{zIndex:10}}>
