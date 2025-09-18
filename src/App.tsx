@@ -89,6 +89,12 @@ function App() {
       return hasData ? resp.data : [];
     })
     Promise.all([TfPromise,SPromise,mPromise]).then(([tf,s,m])=>{
+      const allQuestions = [...tf,...s,...m] as Array<Question>;
+      allQuestions.forEach(q => {
+        if(q.type === "m"){
+          q.student_answer = [];
+        }
+      })
       setQuestions([...tf,...s,...m]);
       timerRef.current?.start();
     })
