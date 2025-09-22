@@ -1,0 +1,63 @@
+﻿[
+    {
+      "id": 201,
+      "type": "tf",
+      "question": "Infrastructure as a Service (IaaS) delivers virtualized computing resources over the internet.",
+      "options": [
+        { "optionid": 1, "optiontext": "True" },
+        { "optionid": 2, "optiontext": "False" }
+      ],
+      "answer": 1,
+      "exp": "IaaS provides virtual machines, networking, and storage resources on-demand from a cloud provider."
+    },
+    {
+      "id": 202,
+      "type": "s",
+      "question": "Which service model best describes AWS Lambda?",
+      "options": [
+        { "optionid": 1, "optiontext": "Infrastructure as a Service" },
+        { "optionid": 2, "optiontext": "Platform as a Service" },
+        { "optionid": 3, "optiontext": "Software as a Service" },
+        { "optionid": 4, "optiontext": "Serverless (Function as a Service)" }
+      ],
+      "answer": 4,
+      "exp": "AWS Lambda runs code in response to events without provisioning servers, making it a serverless or Function-as-a-Service offering."
+    },
+    {
+      "id": 203,
+      "type": "m",
+      "question": "Which advantages are commonly associated with auto scaling in cloud platforms?",
+      "options": [
+        { "optionid": 1, "optiontext": "Improved application availability" },
+        { "optionid": 2, "optiontext": "Automatic adjustment of capacity based on demand" },
+        { "optionid": 3, "optiontext": "Guaranteed fixed monthly billing" },
+        { "optionid": 4, "optiontext": "Reduced operational effort" }
+      ],
+      "answer": [1, 2, 4],
+      "exp": "Auto scaling helps maintain availability, aligns capacity with demand, and reduces manual operations, but it does not guarantee fixed billing."
+    },
+    {
+      "id": 204,
+      "type": "tf",
+      "question": "Object storage is well-suited for storing large amounts of unstructured data such as media files and backups.",
+      "options": [
+        { "optionid": 1, "optiontext": "True" },
+        { "optionid": 2, "optiontext": "False" }
+      ],
+      "answer": 1,
+      "exp": "Object storage is optimized for storing massive volumes of unstructured data with built-in scalability and durability."
+    },
+    {
+      "id": 205,
+      "type": "s",
+      "question": "Which Google Cloud service provides a fully managed relational database?",
+      "options": [
+        { "optionid": 1, "optiontext": "Cloud SQL" },
+        { "optionid": 2, "optiontext": "Cloud Storage" },
+        { "optionid": 3, "optiontext": "BigQuery" },
+        { "optionid": 4, "optiontext": "Cloud Functions" }
+      ],
+      "answer": 1,
+      "exp": "Cloud SQL is Google Cloud's managed relational database service that supports MySQL, PostgreSQL, and SQL Server."
+    }
+  ]

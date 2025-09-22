@@ -1,0 +1,63 @@
+﻿[
+    {
+      "id": 101,
+      "type": "tf",
+      "question": "TCP is a connection-oriented protocol.",
+      "options": [
+        { "optionid": 1, "optiontext": "True" },
+        { "optionid": 2, "optiontext": "False" }
+      ],
+      "answer": 1,
+      "exp": "TCP establishes a reliable, connection-oriented session before transferring data."
+    },
+    {
+      "id": 102,
+      "type": "s",
+      "question": "Which OSI layer is responsible for routing packets between networks?",
+      "options": [
+        { "optionid": 1, "optiontext": "Application layer" },
+        { "optionid": 2, "optiontext": "Transport layer" },
+        { "optionid": 3, "optiontext": "Network layer" },
+        { "optionid": 4, "optiontext": "Physical layer" }
+      ],
+      "answer": 3,
+      "exp": "Routers operate at the OSI network layer, which is responsible for path selection and logical addressing."
+    },
+    {
+      "id": 103,
+      "type": "m",
+      "question": "Which of the following protocols operate at the transport layer?",
+      "options": [
+        { "optionid": 1, "optiontext": "HTTP" },
+        { "optionid": 2, "optiontext": "TCP" },
+        { "optionid": 3, "optiontext": "UDP" },
+        { "optionid": 4, "optiontext": "ICMP" }
+      ],
+      "answer": [2, 3],
+      "exp": "TCP and UDP are transport layer protocols. HTTP works at the application layer and ICMP at the network layer."
+    },
+    {
+      "id": 104,
+      "type": "tf",
+      "question": "DNS uses UDP by default for standard queries.",
+      "options": [
+        { "optionid": 1, "optiontext": "True" },
+        { "optionid": 2, "optiontext": "False" }
+      ],
+      "answer": 1,
+      "exp": "DNS typically uses UDP port 53 for queries, switching to TCP only when responses exceed the UDP size limit."
+    },
+    {
+      "id": 105,
+      "type": "s",
+      "question": "What is the default subnet mask for a Class C IPv4 network?",
+      "options": [
+        { "optionid": 1, "optiontext": "255.255.255.0" },
+        { "optionid": 2, "optiontext": "255.255.0.0" },
+        { "optionid": 3, "optiontext": "255.0.0.0" },
+        { "optionid": 4, "optiontext": "255.255.255.252" }
+      ],
+      "answer": 1,
+      "exp": "Class C networks reserve the first three octets for the network portion, resulting in the subnet mask 255.255.255.0."
+    }
+  ]

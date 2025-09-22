@@ -14,11 +14,14 @@ import QuestionNavButton from './components/QuestionNavButton'
 import CountDownTimer,{TimerHanlde} from './components/CountDownTimer'
 import ConfirmEndExamModal, {ModalHandle as ComfirmEndExamModalHandle} from './components/modals/ConfirmEndExamModal';
 import ScoreModal,{ModalHandle as ScoreModalHandle} from './components/modals/ScoreModal'
+import ExamSelectionModal, { ExamSelectionModalHandle ,type ExamOption} from './components/modals/ExamSelectionModal'
 
 import { Question,TfQuestion,SQuestion,MQuestion } from './types/QuestionTypes'
 import Mode from './enums/mode'
 import EventEmitter from './utils/EventEmitter';
 import { AnsweredEvent} from './types/EventTypes';
+
+import { GetExamList } from './lib/GetExamList'
 
 const smoothScrollToChild = (parentElement:HTMLElement, childElement:HTMLElement, duration=500) => {
   //destination為子元素到父元素頂部的距離
@@ -70,34 +73,61 @@ function App() {
   const timerRef = useRef<TimerHanlde>(null);
   const endExamRef = useRef<ComfirmEndExamModalHandle>(null);
   const scoreModalRef = useRef<ScoreModalHandle>(null);
+  const examSelectModalRef = useRef<ExamSelectionModalHandle>(null);
+
+  // 撈取考卷資料
+  const [isExamLoading, setIsExamLoading] = useState(false);
+  const exams : ExamOption[] = GetExamList()
+  const [selectedExam, setSelectedExam] = useState<ExamOption>();
+  const loadExamData = async (exam: ExamOption) => {
+    setIsExamLoading(true);
+    const questions = await axios.get(exam.url).then( (resp:any) => {
+      const hasData = Array.isArray(resp.data);
+      return hasData ? resp.data as Question[] : [] as Question[] ;
+    }).finally(()=>{
+      setIsExamLoading(false);
+    })
+
+    questions.forEach(q => {
+      if(q.type === "m"){
+        q.student_answer = [];
+      }
+    })
+    setQuestions(questions);
+    setSelectedExam(exam);
+    examSelectModalRef.current?.closeModal(); //關閉試卷選擇Modal
+    timerRef.current?.start(); // 啟動計時器
+  }
 
   //mounted
   useEffect(()=>{
-    const TfPromise = axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
-      //setTfQuestions(resp.data);
-      const hasData = Array.isArray(resp.data);
-      return hasData ? resp.data : [];
-    })
-    const SPromise = axios.get("/questionData/SQuestions.json").then((resp:any)=>{
-      //setSQuestions(resp.data);
-      const hasData = Array.isArray(resp.data);
-      return hasData ? resp.data : [];
-    })
-    const mPromise = axios.get("/questionData/MQuestions.json").then((resp:any )=>{
-      //setMQuestions(resp.data);
-      const hasData = Array.isArray(resp.data);
-      return hasData ? resp.data : [];
-    })
-    Promise.all([TfPromise,SPromise,mPromise]).then(([tf,s,m])=>{
-      const allQuestions = [...tf,...s,...m] as Array<Question>;
-      allQuestions.forEach(q => {
-        if(q.type === "m"){
-          q.student_answer = [];
-        }
-      })
-      setQuestions([...tf,...s,...m]);
-      timerRef.current?.start();
-    })
+    examSelectModalRef.current?.openModal()
+
+    // const TfPromise = axios.get("/questionData/TfQuestions.json").then((resp:any)=>{
+    //   //setTfQuestions(resp.data);
+    //   const hasData = Array.isArray(resp.data);
+    //   return hasData ? resp.data : [];
+    // })
+    // const SPromise = axios.get("/questionData/SQuestions.json").then((resp:any)=>{
+    //   //setSQuestions(resp.data);
+    //   const hasData = Array.isArray(resp.data);
+    //   return hasData ? resp.data : [];
+    // })
+    // const mPromise = axios.get("/questionData/MQuestions.json").then((resp:any )=>{
+    //   //setMQuestions(resp.data);
+    //   const hasData = Array.isArray(resp.data);
+    //   return hasData ? resp.data : [];
+    // })
+    // Promise.all([TfPromise,SPromise,mPromise]).then(([tf,s,m])=>{
+    //   const allQuestions = [...tf,...s,...m] as Array<Question>;
+    //   allQuestions.forEach(q => {
+    //     if(q.type === "m"){
+    //       q.student_answer = [];
+    //     }
+    //   })
+    //   setQuestions([...tf,...s,...m]);
+    //   timerRef.current?.start(); // 啟動計時器
+    // })
   },[])
 
   const [questions,setQuestions] = useState<Array<Question>>([]);
@@ -218,6 +248,7 @@ function App() {
     <>
       <div className='w-100 flex-grow-1 row flex-column-reverse flex-md-row g-0'>
         <div className='col-md-4 bg-success p-3 pb-md-3 pb-0 overflow-auto d-flex flex-md-column'>
+          <h2 className='fz24 text-white mb-4'>{selectedExam?.label}</h2>
           {
             tfQuestions.length> 0 && 
             <div>          
@@ -310,6 +341,7 @@ function App() {
       {score !== null &&
         <ScoreModal ref={scoreModalRef} score={score} usedTime={duration - (timerRef.current?.remainingTime? timerRef.current?.remainingTime:0)} correctCount={correctCount?correctCount:0} totalCount={questions.length}></ScoreModal>
       }
+      <ExamSelectionModal ref={examSelectModalRef} isLoading={isExamLoading} exams={exams} onSelect={loadExamData}></ExamSelectionModal>
       
     </>
   )
