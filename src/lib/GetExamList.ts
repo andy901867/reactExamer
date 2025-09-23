@@ -12,7 +12,7 @@ function getName(p: string) {
     .replace(/\b\w/g, s => s.toUpperCase());
 }
 
-const exams = import.meta.glob('../../public/questionData/*.json');
+const exams = import.meta.glob('../../questionData/*.json');
 
 
 export function GetExamList(): ExamOption[] {
